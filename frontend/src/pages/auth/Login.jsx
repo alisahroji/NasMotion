@@ -539,9 +539,73 @@ export default function Login() {
           ))}
         </div>
 
+        {/* Divider */}
+        <div
+          className="anim-fade-up anim-d6"
+          style={{
+            display: "flex", alignItems: "center", gap: "12px",
+            margin: "24px 0 20px",
+          }}
+        >
+          <div style={{ flex: 1, height: "1px", background: "#1A2035" }} />
+          <span style={{
+            fontFamily: "Barlow Semi Condensed, sans-serif",
+            fontSize: "10px", letterSpacing: "0.16em",
+            textTransform: "uppercase", color: "#1E2840",
+          }}>
+            Pelanggan?
+          </span>
+          <div style={{ flex: 1, height: "1px", background: "#1A2035" }} />
+        </div>
+
+        {/* Tombol Cek Status Kendaraan */}
+        <a
+          href="/cek"
+          className="anim-fade-up anim-d6"
+          style={{
+            display: "flex", alignItems: "center", justifyContent: "center",
+            gap: "8px",
+            background: "transparent",
+            border: "1px solid #1A2035",
+            borderRadius: "8px",
+            padding: "12px 16px",
+            textDecoration: "none",
+            cursor: "pointer",
+            transition: "all 0.2s",
+            marginBottom: "24px",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = "#C8912A";
+            e.currentTarget.style.background = "rgba(200,145,42,0.06)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = "#1A2035";
+            e.currentTarget.style.background = "transparent";
+          }}
+        >
+          {/* Icon motor */}
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke="#C8912A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="5.5" cy="17.5" r="2.5"/>
+            <circle cx="18.5" cy="17.5" r="2.5"/>
+            <path d="M15 17.5H8M15 6h2l3 4.5M15 6l-5 2.5-2 4M3 13.5l2-4h4"/>
+          </svg>
+          <span style={{
+            fontFamily: "Barlow Semi Condensed, sans-serif",
+            fontSize: "13px", fontWeight: 600,
+            letterSpacing: "0.08em", color: "#8A9BB0",
+          }}>
+            Cek Status Kendaraan
+          </span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+            stroke="#4E5D75" strokeWidth="2">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </a>
+
         {/* Footer */}
         <p
-          className="anim-fade-up anim-d6"
           style={{
             fontFamily: "Barlow Semi Condensed, sans-serif",
             fontSize: "11px",
@@ -549,7 +613,6 @@ export default function Login() {
             textTransform: "uppercase",
             color: "#1E2840",
             textAlign: "center",
-            marginTop: "32px",
           }}
         >
           © 2025 NasMotion · Nasution Workshop
