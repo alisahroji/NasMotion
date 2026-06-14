@@ -2,45 +2,37 @@ import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
 
-// ── Login diimport langsung (bukan lazy) supaya tidak flicker ─
-import Login from "./pages/auth/Login";
+// ── Login & CekStatus diimport langsung (bukan lazy) ──────────
+// supaya tidak ada flicker/loading saat pertama buka
+import Login     from "./pages/auth/Login";
+import CekStatus from "./pages/public/CekStatus";
 
-// ── Lazy load semua halaman ───────────────────────────────────
+// ── Lazy load semua halaman protected ────────────────────────
 const AppLayout      = lazy(() => import("./components/layout/AppLayout"));
-
-// Admin
 const Dashboard      = lazy(() => import("./pages/admin/Dashboard"));
 const Spareparts     = lazy(() => import("./pages/admin/Spareparts"));
 const Services       = lazy(() => import("./pages/admin/Services"));
 const Users          = lazy(() => import("./pages/admin/Users"));
 const Reports        = lazy(() => import("./pages/admin/Reports"));
-
-// Shared (Admin + Kasir + Mekanik)
 const QueueLive      = lazy(() => import("./pages/shared/QueueLive"));
 const RepairDetail   = lazy(() => import("./pages/shared/RepairDetail"));
 const VehicleHistory = lazy(() => import("./pages/shared/VehicleHistory"));
-
-// Kasir
 const Invoice        = lazy(() => import("./pages/kasir/Invoice"));
 
 // ── Page Loader ───────────────────────────────────────────────
 const PageLoader = () => (
-  <div
-    style={{
-      height: "100vh", display: "flex",
-      alignItems: "center", justifyContent: "center",
-      background: "#06080D",
-    }}
-  >
-    <div
-      style={{
-        width: 36, height: 36,
-        border: "2px solid #1A2035",
-        borderTop: "2px solid #C8912A",
-        borderRadius: "50%",
-        animation: "spinSlow 0.8s linear infinite",
-      }}
-    />
+  <div style={{
+    height: "100vh", display: "flex",
+    alignItems: "center", justifyContent: "center",
+    background: "#06080D",
+  }}>
+    <div style={{
+      width: 36, height: 36,
+      border: "2px solid #1A2035",
+      borderTop: "2px solid #C8912A",
+      borderRadius: "50%",
+      animation: "spinSlow 0.8s linear infinite",
+    }} />
   </div>
 );
 
@@ -67,16 +59,18 @@ export default function App() {
     <Suspense fallback={<PageLoader />}>
       <Routes>
 
-        {/* ── Public ───────────────────────────────────────── */}
+        {/* ── PUBLIC (tanpa login) ─────────────────────────── */}
+        <Route path="/cek" element={<CekStatus />} />
+
         <Route
           path="/login"
           element={user ? <Navigate to={defaultRoute(user.role)} replace /> : <Login />}
         />
 
-        {/* ── Protected (semua dalam AppLayout + Outlet) ───── */}
+        {/* ── PROTECTED (perlu login + AppLayout) ─────────── */}
         <Route path="/" element={<Guard><AppLayout /></Guard>}>
 
-          {/* Admin only */}
+          {/* Admin */}
           <Route path="admin/dashboard"
             element={<Guard roles={["admin"]}><Dashboard /></Guard>} />
           <Route path="admin/spareparts"
@@ -88,7 +82,7 @@ export default function App() {
           <Route path="admin/reports"
             element={<Guard roles={["admin"]}><Reports /></Guard>} />
 
-          {/* Shared — Admin, Kasir, Mekanik */}
+          {/* Shared */}
           <Route path="antrian"
             element={<Guard roles={["admin","kasir","mekanik"]}><QueueLive /></Guard>} />
           <Route path="perbaikan/:id"
@@ -100,7 +94,7 @@ export default function App() {
           <Route path="invoice"
             element={<Guard roles={["kasir","admin"]}><Invoice /></Guard>} />
 
-          {/* Default redirect ke halaman sesuai role */}
+          {/* Default redirect */}
           <Route index element={<Navigate to={defaultRoute(user?.role)} replace />} />
         </Route>
 
