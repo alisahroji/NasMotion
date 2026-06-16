@@ -311,7 +311,7 @@ const QueueCard = memo(({ queue, user, onAssign, onStatus, onInvoice }) => {
         {/* Action buttons */}
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
 
-          {/* Admin/Kasir: Assign */}
+          {/* Admin/Kasir: Assign — hanya 1 tombol, tidak duplikat */}
           {["admin","kasir"].includes(user?.role) && queue.status === "waiting" && !queue.mekanik_id && (
             <ABtn label="Assign Mekanik" color="#5B8DEF" icon="👤" onClick={() => onAssign(queue)} />
           )}
@@ -319,12 +319,12 @@ const QueueCard = memo(({ queue, user, onAssign, onStatus, onInvoice }) => {
             <ABtn label="Ganti Mekanik" color="#8A9BB0" icon="🔄" onClick={() => onAssign(queue)} />
           )}
 
-          {/* Mekanik: Mulai */}
+          {/* Mekanik: Mulai kerjakan */}
           {user?.role === "mekanik" && queue.status === "waiting" && queue.mekanik_id === user?.id && (
             <ABtn label="Mulai Kerjakan" color="#C8912A" icon="🔧" onClick={() => onStatus(queue, "in_progress")} />
           )}
 
-          {/* Mekanik: In progress */}
+          {/* Mekanik & Admin: Input sparepart + Selesai */}
           {(user?.role === "mekanik" || user?.role === "admin") && queue.status === "in_progress" && (
             <>
               <ABtn label="Input Sparepart" color="#A78BFA" icon="📦"
@@ -334,18 +334,13 @@ const QueueCard = memo(({ queue, user, onAssign, onStatus, onInvoice }) => {
             </>
           )}
 
-          {/* Admin assign saat in_progress */}
-          {user?.role === "admin" && queue.status === "waiting" && (
-            <ABtn label="Assign" color="#5B8DEF" icon="👤" onClick={() => onAssign(queue)} />
-          )}
-
-          {/* Kasir/Admin: Invoice */}
+          {/* Kasir/Admin: Buat Invoice */}
           {["kasir","admin"].includes(user?.role) && queue.status === "done" && !queue.invoice_id && (
             <ABtn label="Buat Invoice" color="#52C97B" icon="🧾"
               onClick={() => onInvoice(queue)} />
           )}
 
-          {/* Detail perbaikan */}
+          {/* Lihat detail perbaikan */}
           {["admin","kasir"].includes(user?.role) && (queue.status === "in_progress" || queue.status === "done") && (
             <ABtn label="Detail" color="#4E5D75" icon="↗"
               onClick={() => window.location.href = `/perbaikan/${queue.id}`} />
@@ -667,7 +662,7 @@ export default function QueueLive() {
   const fetchSupport = useCallback(async () => {
     try {
       const [mRes, sRes] = await Promise.all([
-        api.get("/users?role=mekanik&is_active=true"),
+        api.get("/users/mechanics"),   // endpoint khusus, bisa diakses kasir
         api.get("/services?is_active=true"),
       ]);
       setMechs(mRes.data.data);
@@ -781,7 +776,7 @@ export default function QueueLive() {
           {filtered.map((q) => (
             <QueueCard
               key={q.id}
-              queue={q} 
+              queue={q}
               user={user}
               onAssign={(queue)           => setModal({ type: "assign", queue })}
               onStatus={(queue, target)   => setModal({ type: "status", queue, targetStatus: target })}
