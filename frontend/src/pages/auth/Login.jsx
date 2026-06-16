@@ -341,7 +341,7 @@ export default function Login() {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} autoComplete="off">
 
           {/* Email */}
           <div
@@ -369,7 +369,7 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                autoComplete="email"
+                autoComplete="off"
                 placeholder="email@nasmotion.com"
                 className="input-field"
                 style={{ paddingLeft: "42px" }}
@@ -402,7 +402,7 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                autoComplete="current-password"
+                autoComplete="new-password"
                 placeholder="••••••••"
                 className="input-field"
                 style={{ paddingLeft: "42px", paddingRight: "44px" }}

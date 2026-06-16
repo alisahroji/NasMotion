@@ -667,7 +667,10 @@ export default function QueueLive() {
       ]);
       setMechs(mRes.data.data);
       setServices(sRes.data.data);
-    } catch { /* silent */ }
+    } catch (err) {
+      console.error("fetchSupport error:", err);
+      toast.error("Gagal memuat daftar mekanik/layanan: " + (err.response?.data?.message || err.message));
+    }
   }, []);
 
   useEffect(() => {
