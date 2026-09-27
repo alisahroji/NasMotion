@@ -2,12 +2,16 @@ const pool = require("../../config/db");
 
 /**
  * Generate nomor invoice: INV-YYYYMMDD-XXX
+ * WAJIB dipanggil dengan `client` (koneksi transaksi aktif) agar
+ * perhitungan COUNT berada di transaksi yang sama dengan INSERT.
+ * Dipanggil SETELAH pg_advisory_xact_lock sehingga tidak ada dua
+ * transaksi yang menghitung nomor yang sama (aman multi-instance).
  */
-const generateInvoiceNumber = async () => {
+const generateInvoiceNumber = async (client) => {
   const today = new Date();
   const dateStr = today.toISOString().slice(0, 10).replace(/-/g, "");
 
-  const result = await pool.query(
+  const result = await client.query(
     `SELECT COUNT(*) AS count FROM invoices
      WHERE DATE(created_at) = CURRENT_DATE`
   );
@@ -153,6 +157,11 @@ const createInvoice = async ({ queue_id, kasir_id, payment_method, notes }) => {
   try {
     await client.query("BEGIN");
 
+    // ── Concurrency protection (database-level, aman multi-instance) ──
+    // Advisory lock transaction-scoped: otomatis lepas saat COMMIT/ROLLBACK.
+    // Menyerialisasi perhitungan nomor invoice antar semua process/backend.
+    await client.query("SELECT pg_advisory_xact_lock(24092026001)");
+
     // Hitung total service
     const svcResult = await client.query(
       `SELECT COALESCE(SUM(price_snapshot), 0) AS total
@@ -170,7 +179,7 @@ const createInvoice = async ({ queue_id, kasir_id, payment_method, notes }) => {
     const total_sparepart = parseFloat(spResult.rows[0].total);
 
     const total_amount = total_service + total_sparepart;
-    const invoice_number = await generateInvoiceNumber();
+    const invoice_number = await generateInvoiceNumber(client);
 
     const result = await client.query(
       `INSERT INTO invoices

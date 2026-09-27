@@ -7,7 +7,10 @@ const verifyToken = require("../../middlewares/auth");
 router.post("/login", login);
 
 // POST /api/auth/logout
-router.post("/logout", verifyToken, logout);
+// Logout adalah operasi cleanup/session termination: cookie harus selalu
+// di-clear meski token expired/tidak ada. Token TIDAK diverifikasi di sini —
+// aman karena endpoint ini tidak mengembalikan data apa pun.
+router.post("/logout", logout);
 
 // GET /api/auth/me
 router.get("/me", verifyToken, getMe);

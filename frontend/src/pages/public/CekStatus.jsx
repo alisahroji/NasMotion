@@ -60,7 +60,8 @@ export default function CekStatus() {
     if (!silent) { setLoading(true); setError(""); setSearched(true); }
 
     try {
-      const res = await api.get(`/vehicles/plate/${encodeURIComponent(q)}`);
+      // Endpoint publik khusus cek status (tanpa login, field aman saja)
+      const res = await api.get(`/public/vehicles/status/${encodeURIComponent(q)}`);
       setResult(res.data.data);
       setError("");
     } catch (err) {

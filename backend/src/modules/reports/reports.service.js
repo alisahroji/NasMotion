@@ -124,7 +124,11 @@ const getRevenueReport = async ({ date_from, date_to, kasir_id }) => {
  * Performa mekanik
  */
 const getMechanicPerformance = async ({ date_from, date_to }) => {
-  let query = `
+  // Kondisi tanggal ditempatkan di ON clause LEFT JOIN (bukan WHERE) agar
+  // mekanik tanpa queue pada periode terpilih TETAP muncul dengan angka 0.
+  // Param di-cast ::date; NULL = tanpa batas (perilaku sama dengan sebelumnya).
+  // Semantik tanggal tidak berubah: tetap DATE(created_at) (UTC) seperti existing.
+  const query = `
     SELECT
       u.id,
       u.name,
@@ -137,29 +141,15 @@ const getMechanicPerformance = async ({ date_from, date_to }) => {
         2
       )                                              AS avg_duration_minutes
     FROM users u
-    LEFT JOIN queues q ON q.mekanik_id = u.id
-  `;
-  const params = [];
-  const conditions = [`u.role = 'mekanik'`];
-
-  if (date_from) {
-    params.push(date_from);
-    conditions.push(`DATE(q.created_at) >= $${params.length}`);
-  }
-
-  if (date_to) {
-    params.push(date_to);
-    conditions.push(`DATE(q.created_at) <= $${params.length}`);
-  }
-
-  if (conditions.length > 0) {
-    query += ` WHERE ` + conditions.join(" AND ");
-  }
-
-  query += `
+    LEFT JOIN queues q
+      ON q.mekanik_id = u.id
+     AND ($1::date IS NULL OR DATE(q.created_at) >= $1::date)
+     AND ($2::date IS NULL OR DATE(q.created_at) <= $2::date)
+    WHERE u.role = 'mekanik'
     GROUP BY u.id, u.name
     ORDER BY total_done DESC
   `;
+  const params = [date_from || null, date_to || null];
 
   const result = await pool.query(query, params);
   return result.rows;

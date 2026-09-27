@@ -40,6 +40,13 @@ export default function AppLayout() {
   // Tutup sidebar saat route berubah (mobile)
   useEffect(() => { setOpen(false); }, [location.pathname]);
 
+  // Kembali ke desktop: reset state mobile agar tidak ada sidebar/overlay nyangkut
+  useEffect(() => {
+    const onResize = () => { if (window.innerWidth > 768) setOpen(false); };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
   // Tutup sidebar klik overlay
   const handleOverlay = useCallback((e) => {
     if (e.target === overlayRef.current) setOpen(false);
@@ -96,7 +103,7 @@ export default function AppLayout() {
           transform: open ? "translateX(0)" : undefined,
           transition: "transform 0.28s cubic-bezier(0.22,1,0.36,1)",
         }}
-        className="sidebar-el"
+        className={`sidebar-el${open ? " open" : ""}`}
       >
         {/* Sidebar top accent */}
         <div style={{

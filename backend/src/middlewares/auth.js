@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
+const { findUserById } = require("../modules/auth/auth.service");
 
-const verifyToken = (req, res, next) => {
+const verifyToken = async (req, res, next) => {
   try {
     // Ambil token dari cookie atau Authorization header
     const token =
@@ -15,6 +16,24 @@ const verifyToken = (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Validasi is_active dari DATABASE (bukan dari payload JWT yang bisa
+    // stale): user yang dinonaktifkan admin harus langsung kehilangan akses,
+    // walau JWT-nya masih valid sampai expired.
+    const dbUser = await findUserById(decoded.id);
+    if (!dbUser) {
+      return res.status(401).json({
+        success: false,
+        message: "Sesi tidak valid. Silakan login kembali.",
+      });
+    }
+    if (!dbUser.is_active) {
+      return res.status(403).json({
+        success: false,
+        message: "Akun kamu dinonaktifkan. Hubungi admin.",
+      });
+    }
+
     req.user = decoded; // { id, name, email, role }
     next();
   } catch (err) {
