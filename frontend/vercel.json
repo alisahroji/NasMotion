@@ -3,7 +3,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://NASMOTION-BACKEND-URL.vercel.app/api/:path*"
+      "destination": "https://nas-motion.vercel.app/api/:path*"
     },
     {
       "source": "/((?!api/).*)",
