@@ -1,11 +1,12 @@
-import { lazy, Suspense } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { lazy, Suspense, useEffect } from "react";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
 
-// ── Login & CekStatus diimport langsung (bukan lazy) ──────────
+// ── Public pages diimport langsung (bukan lazy) ─────────────
 // supaya tidak ada flicker/loading saat pertama buka
 import Login     from "./pages/auth/Login";
 import CekStatus from "./pages/public/CekStatus";
+import Landing   from "./pages/public/Landing";
 
 // ── Lazy load semua halaman protected ────────────────────────
 const AppLayout      = lazy(() => import("./components/layout/AppLayout"));
@@ -19,7 +20,6 @@ const RepairDetail   = lazy(() => import("./pages/shared/RepairDetail"));
 const VehicleHistory = lazy(() => import("./pages/shared/VehicleHistory"));
 const Invoice        = lazy(() => import("./pages/kasir/Invoice"));
 
-// ── Page Loader ───────────────────────────────────────────────
 const PageLoader = () => (
   <div style={{
     height: "100vh", display: "flex",
@@ -35,6 +35,20 @@ const PageLoader = () => (
     }} />
   </div>
 );
+
+// ── Document title global (fallback; halaman spesifik meng-override sendiri) ──
+const PAGE_TITLES = {
+  "/login":          "NasMotion — Login",
+  "/cek":            "NasMotion — Cek Status",
+  "/antrian":        "NasMotion — Antrean",
+  "/histori":        "NasMotion — Histori",
+  "/invoice":        "NasMotion — Invoice",
+  "/admin/dashboard":  "NasMotion — Dashboard",
+  "/admin/spareparts": "NasMotion — Sparepart",
+  "/admin/services":   "NasMotion — Servis",
+  "/admin/users":      "NasMotion — Pengguna",
+  "/admin/reports":    "NasMotion — Laporan",
+};
 
 // ── Default route per role ────────────────────────────────────
 const defaultRoute = (role) =>
@@ -53,6 +67,13 @@ const Guard = ({ roles, children }) => {
 // ── App ───────────────────────────────────────────────────────
 export default function App() {
   const { user, loading } = useAuth();
+  const location = useLocation();
+
+  // Dynamic document title per halaman
+  useEffect(() => {
+    document.title = PAGE_TITLES[location.pathname] ?? "NasMotion — Workshop Management System";
+  }, [location.pathname]);
+
   if (loading) return <PageLoader />;
 
   return (
@@ -60,6 +81,7 @@ export default function App() {
       <Routes>
 
         {/* ── PUBLIC (tanpa login) ─────────────────────────── */}
+        <Route path="/" element={<Landing />} />
         <Route path="/cek" element={<CekStatus />} />
 
         <Route
@@ -68,7 +90,8 @@ export default function App() {
         />
 
         {/* ── PROTECTED (perlu login + AppLayout) ─────────── */}
-        <Route path="/" element={<Guard><AppLayout /></Guard>}>
+        {/* Pathless layout: URL nested tidak berubah, "/" milik landing */}
+        <Route element={<Guard><AppLayout /></Guard>}>
 
           {/* Admin */}
           <Route path="admin/dashboard"
@@ -93,9 +116,7 @@ export default function App() {
           {/* Kasir */}
           <Route path="invoice"
             element={<Guard roles={["kasir","admin"]}><Invoice /></Guard>} />
-
-          {/* Default redirect */}
-          <Route index element={<Navigate to={defaultRoute(user?.role)} replace />} />
+          {/* "/" tidak lagi index redirect — landing publik di route "/" terpisah */}
         </Route>
 
         {/* Catch all */}
